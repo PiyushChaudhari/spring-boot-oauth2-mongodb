@@ -1,0 +1,66 @@
+db.permission.insert(
+    [
+		{
+			"name" : "V1_CUSTOMERINFO",
+			"_class" : "com.mongodb.oauth2.entity.Permission"
+		}
+    ]
+);
+
+permissionId = function(permission) { return permission._id.str; }
+
+
+db.role.insert(
+    [
+       {
+			"name" : "ROLE_CUSTOMER",
+			"permissions" : db.permission.find({name:{$in:["V1_CUSTOMERINFO"]}},{_id:1}).map(permissionId),
+			"_class" : "com.mongodb.oauth2.entity.Role"
+		} 
+    ]
+);
+
+roleId = function(role) { return role._id.str; }
+
+
+db.user.insert(
+    [
+       {
+			"username" : "USER_PIYUSH",
+			"password" : "$2a$10$IPrWZ6mZP1r6Yu8PvCGvSOoR7T8dogRITzCPg2KFftRCu2v3qDH2u",
+			"roles" : db.role.find({name:{$in:["ROLE_CUSTOMER"]}},{_id:1}).map(roleId),
+			"_class" : "com.mongodb.oauth2.entity.User"
+		} 
+    ]
+);
+
+
+db.client_details.insert(
+	[
+		{
+			"clientId" : "CLIENT_CUSTOMER",
+			"resourceIds" : [ "rest-api"],
+			"secretRequired" : true,
+			"clientSecret" : "$2a$10$IPrWZ6mZP1r6Yu8PvCGvSOoR7T8dogRITzCPg2KFftRCu2v3qDH2u",
+			"scoped" : true,
+			"scope" : [ "ROLE_CUSTOMER"],
+			"authorizedGrantTypes" : [ 
+				"password", 
+				"authorization_code", 
+				"refresh_token", 
+				"implicit"
+			],
+			"authorities" : [ 
+				{
+					"role" : "V1_CUSTOMERINFO",
+					"_class" : "org.springframework.security.core.authority.SimpleGrantedAuthority"
+				}
+			],
+			"accessTokenValiditySeconds" : NumberInt(86400),
+			"refreshTokenValiditySeconds" : NumberInt(2592000),
+			"autoApprove" : false,
+			"additionalInformation" : {},
+			"_class" : "com.mongodb.oauth2.entity.MongoClientDetails"
+		}
+	]
+);
